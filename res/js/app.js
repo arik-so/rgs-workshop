@@ -1,7 +1,8 @@
 console.log('yo!')
 
 import {createApp} from 'vue'
-import * as ldk from './ldk/index.mjs';
+// import * as d3Module from 'd3';
+import * as ldk from '../../node_modules/lightningdevkit/index.mjs';
 
 const app = createApp({
 	data() {
@@ -77,7 +78,7 @@ const app = createApp({
 			this.hasInitializedLDK = true;
 
 			// NOTE: THIS WILL VARY DUE TO THE NATURE OF MODULES!
-			await ldk.initializeWasmWebFetch('./res/js/ldk/liblightningjs.wasm');
+			await ldk.initializeWasmWebFetch('./node_modules/lightningdevkit/liblightningjs.wasm');
 
 			class DemoLoggerInterface {
 				log(record) {
@@ -85,7 +86,7 @@ const app = createApp({
 					if (!(record instanceof ldk.Record)) {
 						return;
 					}
-					console.log('LDK log:\n>\t' + record.get_args())
+					console.log(`\nLDK log: (${record.get_level()}): ${record.get_file()}:${record.get_line()}:\n> ${record.get_args()}\n`);
 				}
 			}
 
