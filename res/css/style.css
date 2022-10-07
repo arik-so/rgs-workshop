@@ -1,0 +1,28 @@
+div#app {
+	margin: auto;
+	text-align: center;
+}
+
+div#my_dataviz {
+	border: 1px solid rebeccapurple;
+
+	margin: 20px;
+	min-width: calc(100vw - 100px);
+	min-height: calc(100vh - 300px)
+}
+
+table {
+	margin: auto;
+	padding-bottom: 20px;
+}
+
+table th {
+	text-align: right;
+	border-right: 1px solid black;
+	padding-right: 20px;
+}
+
+table td {
+	padding-left: 20px;
+	text-align: left;
+}
