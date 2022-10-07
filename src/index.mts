@@ -4,10 +4,9 @@ import * as debugModule from 'debug';
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
 import * as crypto from 'crypto';
-import * as net from 'net';
 import {NodeLDKNet} from 'lightningdevkit-node-net';
 
-const debug = debugModule.default('rgs-workshop');
+const debug = debugModule.default('rgs-workshop:index');
 
 (async () => {
 
@@ -57,7 +56,11 @@ const debug = debugModule.default('rgs-workshop');
 
 	const nodeLdkNet = new NodeLDKNet(peerManager);
 
+	// Matt
 	await connectToPeer('03db10aa09ff04d3568b0621750794063df401e6853c79a21a83e1a3f3b5bfb0c8@69.59.18.80:9735');
+
+	// Kraken
+	// await connectToPeer('02f1a8c87607f415c8f22c00593002775941dea48869ce23096af27b0cfdcc0b69@52.13.118.208:9735');
 	await monitorGraphSize();
 
 	async function connectToPeer(peerUrlString: string) {
@@ -83,8 +86,10 @@ const debug = debugModule.default('rgs-workshop');
 		const channels = networkGraphCopy.list_channels();
 		networkGraphCopy.free();
 
-		console.log('\nNODE COUNT:', nodes.length);
-		console.log('CHANNEL COUNT:', channels.length);
+		debug('Graph size: %O', {
+			nodes: nodes.length,
+			channels: channels.length
+		});
 
 		const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 		await delay(2000); // wait 2 seconds
@@ -100,6 +105,6 @@ class WorkshopLogger implements ldk.LoggerInterface {
 			// ignore this
 			return;
 		}
-		console.log(`\nWorkshopLogger (${record.get_level()}): ${record.get_file()}:${record.get_line()}:\n> ${record.get_args()}\n`);
+		debug(`\nWorkshopLogger (${record.get_level()}): ${record.get_file()}:${record.get_line()}:\n> ${record.get_args()}\n`);
 	}
 }
