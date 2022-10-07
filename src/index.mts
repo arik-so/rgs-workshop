@@ -103,24 +103,3 @@ class WorkshopLogger implements ldk.LoggerInterface {
 		console.log(`\nWorkshopLogger (${record.get_level()}): ${record.get_file()}:${record.get_line()}:\n> ${record.get_args()}\n`);
 	}
 }
-
-class WorkshopFeeEstimator implements ldk.FeeEstimatorInterface {
-	get_est_sat_per_1000_weight(confirmation_target: ldk.ConfirmationTarget): number {
-		return 0;
-	}
-}
-
-class WorkshopBroadcaster implements ldk.BroadcasterInterfaceInterface {
-	broadcast_transaction(tx: Uint8Array): void {
-	}
-}
-
-class WorkshopPersist implements ldk.PersistInterface {
-	persist_new_channel(channel_id: ldk.OutPoint, data: ldk.ChannelMonitor, update_id: ldk.MonitorUpdateId): ldk.Result_NoneChannelMonitorUpdateErrZ {
-		return ldk.Result_NoneChannelMonitorUpdateErrZ.constructor_ok();
-	}
-
-	update_persisted_channel(channel_id: ldk.OutPoint, update: ldk.ChannelMonitorUpdate, data: ldk.ChannelMonitor, update_id: ldk.MonitorUpdateId): ldk.Result_NoneChannelMonitorUpdateErrZ {
-		return ldk.Result_NoneChannelMonitorUpdateErrZ.constructor_ok();
-	}
-}
