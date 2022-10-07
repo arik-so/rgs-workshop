@@ -3,12 +3,13 @@
 		"tsc": "./node_modules/typescript/bin/tsc --build tsconfig.json"
 	},
 	"dependencies": {
-    "debug": "^4.3.4",
-    "lightningdevkit": "^0.0.11-1.1"
-  },
-  "devDependencies": {
-    "@types/debug": "^4.1.7",
-    "@types/node": "^18.8.3",
-    "typescript": "^4.8.4"
-  }
+		"debug": "^4.3.4",
+		"lightningdevkit": "^0.0.11-1.1",
+		"lightningdevkit-node-net": "^0.0.11-1.1"
+	},
+	"devDependencies": {
+		"@types/debug": "^4.1.7",
+		"@types/node": "^18.8.3",
+		"typescript": "^4.8.4"
+	}
 }

@@ -5,6 +5,7 @@ import {dirname} from 'path';
 import {fileURLToPath} from 'url';
 import * as crypto from 'crypto';
 import * as net from 'net';
+import {NodeLDKNet} from 'lightningdevkit-node-net';
 
 const debug = debugModule.default('rgs-workshop');
 
@@ -81,20 +82,25 @@ const debug = debugModule.default('rgs-workshop');
 		ignoringMessageHandler.as_CustomMessageHandler()
 	);
 
-	BackgroundProcessor.init(peerManager);
+	const nodeLdkNet = new NodeLDKNet(peerManager);
 
 	await connectToPeer('03db10aa09ff04d3568b0621750794063df401e6853c79a21a83e1a3f3b5bfb0c8@69.59.18.80:9735');
 
 	async function connectToPeer(peerUrlString: string) {
-		console.log('Connecting to', peerUrlString);
-		let descriptorInterface = new WorkshopSocketDescriptor(peerUrlString, peerManager);
-		const socketDescriptor = ldk.SocketDescriptor.new_impl(descriptorInterface);
-		let outbound = peerManager.new_outbound_connection(descriptorInterface.getPeerNodeId(), socketDescriptor, ldk.Option_NetAddressZ.constructor_none());
-		if (outbound.is_ok()) {
-			descriptorInterface.start();
-		} else {
-			debugger
+		const components = peerUrlString.split('@');
+		const publicKey = components[0];
+		if (publicKey.length !== 66) {
+			throw new Error('public key must be 33 bytes');
 		}
+		const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+		const peerNodeId = Uint8Array.from(publicKeyBuffer);
+
+		const host = components[1];
+		const hostComponents = host.split(':');
+		const domain = hostComponents[0];
+		const port = parseInt(hostComponents[1]);
+
+		return nodeLdkNet.connect_peer(domain, port, peerNodeId);
 	}
 
 })();
@@ -124,124 +130,4 @@ class WorkshopPersist implements ldk.PersistInterface {
 	update_persisted_channel(channel_id: ldk.OutPoint, update: ldk.ChannelMonitorUpdate, data: ldk.ChannelMonitor, update_id: ldk.MonitorUpdateId): ldk.Result_NoneChannelMonitorUpdateErrZ {
 		return ldk.Result_NoneChannelMonitorUpdateErrZ.constructor_ok();
 	}
-}
-
-class BackgroundProcessor {
-	private static eventProcessor: BackgroundProcessor;
-
-	private peerManager: ldk.PeerManager;
-	private lastProcessedTime: number;
-
-	private constructor(peerManager: ldk.PeerManager) {
-		this.peerManager = peerManager;
-		this.lastProcessedTime = new Date().getTime();
-	}
-
-	static init(peerManager: ldk.PeerManager) {
-		if (BackgroundProcessor.eventProcessor) {
-			return;
-		}
-		BackgroundProcessor.eventProcessor = new BackgroundProcessor(peerManager);
-	}
-
-	static processEvents() {
-		this.eventProcessor.peerManager.process_events();
-		const currentTime = new Date().getTime();
-		const elapsed = currentTime - this.eventProcessor.lastProcessedTime;
-		this.eventProcessor.lastProcessedTime = currentTime;
-		if (elapsed >= 30000) {
-			// more than 30 seconds have elapsed
-			this.eventProcessor.peerManager.timer_tick_occurred();
-		}
-	}
-}
-
-class WorkshopSocketDescriptor implements ldk.SocketDescriptorInterface {
-
-	private static instanceCounter = 0;
-	private instanceIndex;
-
-	private socket: net.Socket;
-	private peerManager: ldk.PeerManager;
-
-	private peerNodeId: Uint8Array;
-	private peerDomain: string;
-	private peerPort: number;
-
-	constructor(urlString: string, peerManager: ldk.PeerManager) {
-		this.instanceIndex = (++WorkshopSocketDescriptor.instanceCounter);
-
-		const components = urlString.split('@');
-		const publicKey = components[0];
-		if (publicKey.length !== 66) {
-			throw new Error('public key must be 33 bytes');
-		}
-		const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-		this.peerNodeId = Uint8Array.from(publicKeyBuffer);
-
-		const host = components[1];
-		const hostComponents = host.split(':');
-		this.peerDomain = hostComponents[0];
-		this.peerPort = parseInt(hostComponents[1]);
-
-		this.peerManager = peerManager;
-		this.socket = new net.Socket();
-
-		this.socket.on('data', (data) => {
-			this.peerManager.read_event(this, data);
-			BackgroundProcessor.processEvents();
-		});
-
-		this.socket.on('error', (error) => {
-			console.log('Socket Error:');
-			console.error(error);
-		});
-
-		this.socket.on('close', () => {
-			this.peerManager.socket_disconnected(this);
-		});
-
-		console.log('Finished socket setup for', urlString);
-	}
-
-	start() {
-		this.socket.connect(this.peerPort, this.peerDomain, () => {
-			console.log('Socket connected!');
-			BackgroundProcessor.processEvents();
-		});
-	}
-
-	getPeerNodeId(): Uint8Array {
-		return this.peerNodeId;
-	}
-
-	getPeerDomain(): string {
-		return this.peerDomain;
-	}
-
-	getPeerPort(): number {
-		return this.peerPort;
-	}
-
-	disconnect_socket(): void {
-		this.socket.end();
-	}
-
-	eq(other_arg: ldk.SocketDescriptor): boolean {
-		if (!(other_arg instanceof WorkshopSocketDescriptor)) {
-			return false;
-		}
-		return this.instanceIndex === other_arg.instanceIndex;
-	}
-
-	hash(): bigint {
-		return BigInt(this.instanceIndex);
-	}
-
-	send_data(data: Uint8Array, resume_read: boolean): number {
-		const written = this.socket.write(data);
-		// TODO: figure out what number is supposed to be returned here
-		return data.length;
-	}
-
 }
