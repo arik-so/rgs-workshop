@@ -12,7 +12,7 @@ const app = createApp({
 			status: 'Idle',
 			highlightedNode: {},
 			highlightedSelection: null,
-			_maxRenderedChannelCount: 2000
+			_maxRenderedChannelCount: 1000
 		}
 	},
 
@@ -349,7 +349,7 @@ const app = createApp({
 			const parentDimensions = parentContainer.node().getBoundingClientRect();
 			// leave some padding
 			width = parentDimensions.width - 20;
-			height = parentDimensions.height - 20;
+			height = parentDimensions.height - 50;
 
 
 			const svg = d3.select('#d3_graph');
