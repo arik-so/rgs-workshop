@@ -63,7 +63,7 @@ const app = createApp({
 			let color = this.getNodeColor(rawObject.id);
 			return JSON.stringify({
 				// zero-width space so the 0x doesn't get highlighted during selection
-				pubkey: `<span style='color: ${color};'>0x&#8203;${rawObject.id}</span>`
+				pubkey: `<a style='color: ${color};' href='https://1ml.com/node/${rawObject.id}' target="_blank">0x&#8203;${rawObject.id}</a>`
 			}, null, 4)
 		}
 	},
