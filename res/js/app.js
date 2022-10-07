@@ -3,9 +3,6 @@ console.log('yo!')
 import {createApp} from 'vue'
 import * as ldk from './ldk/index.mjs';
 
-const USE_DUMMY_DATA = false;
-const MAX_RENDERED_CHANNEL_COUNT = 2000;
-
 const app = createApp({
 	data() {
 		return {
@@ -14,7 +11,8 @@ const app = createApp({
 			isSnapshotParsed: false,
 			status: 'Idle',
 			highlightedNode: {},
-			highlightedSelection: null
+			highlightedSelection: null,
+			_maxRenderedChannelCount: 2000
 		}
 	},
 
@@ -32,6 +30,22 @@ const app = createApp({
 				return this.dummyGraphData();
 			}
 			return this.getNetworkGraphData();
+		},
+		maxRenderedChannelCount: {
+			// getter
+			get() {
+				return this._maxRenderedChannelCount
+			},
+			// setter
+			set(newValue) {
+				// lock it between 10 and 5000
+				if (!isFinite(newValue)){
+					return;
+				}
+				let newCount = Math.min(Math.max(newValue, 1), 5000);
+				console.log('new max rendered channel count:', newCount);
+				this._maxRenderedChannelCount = newCount
+			}
 		},
 		lastClickedDetails: function() {
 			const rawObject = this.highlightedNode;
@@ -126,7 +140,7 @@ const app = createApp({
 			let readOnlyGraph = this.networkGraph.read_only();
 			let channels = readOnlyGraph.list_channels();
 			for (const currentChannel of channels) {
-				if (useChannelRestriction && responseObject.links.length === MAX_RENDERED_CHANNEL_COUNT) {
+				if (useChannelRestriction && responseObject.links.length === this.maxRenderedChannelCount) {
 					break;
 				}
 
