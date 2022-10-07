@@ -60,7 +60,7 @@ const app = createApp({
 					name: rawObject.name
 				}, null, 4)
 			}
-			let color = this.getNodeColor(rawObject.id);
+			let color = this.getNodeColor(rawObject.id, 1, 0.7);
 			return JSON.stringify({
 				// zero-width space so the 0x doesn't get highlighted during selection
 				pubkey: `<a style='color: ${color};' href='https://1ml.com/node/${rawObject.id}' target="_blank">0x&#8203;${rawObject.id}</a>`
@@ -206,12 +206,12 @@ const app = createApp({
 			return responseObject;
 		},
 
-		getNodeColor(nodePublicKey, alpha = 1) {
+		getNodeColor(nodePublicKey, alpha = 1, factor = 1) {
 			const currentNodeId = this.fromHex(nodePublicKey);
 			// const hexColor = this.toHex(Uint8Array.from(currentNodeId.slice(2, 5)))
-			const red = currentNodeId[2];
-			const green = currentNodeId[3];
-			const blue = currentNodeId[4];
+			const red = Math.round(currentNodeId[2] * factor);
+			const green = Math.round(currentNodeId[3] * factor);
+			const blue = Math.round(currentNodeId[4] * factor);
 			return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 		},
 
